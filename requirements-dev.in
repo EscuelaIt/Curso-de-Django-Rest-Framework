@@ -1,0 +1,5 @@
+# Include production requirements
+-r requirements.in
+
+# Development tools
+pip-tools>=7.0.0

@@ -1,0 +1,9 @@
+# Core Django dependencies
+Django>=4.2,<5.0
+djangorestframework>=3.14.0
+
+# Database
+psycopg2-binary>=2.9.0
+
+# Environment variables
+python-decouple>=3.6
