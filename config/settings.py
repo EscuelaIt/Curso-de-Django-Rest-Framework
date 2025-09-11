@@ -42,6 +42,11 @@ INSTALLED_APPS = [
     'rest_framework',
     # Local apps
     'core',
+    'users',
+    'customers',
+    'accounts',
+    'transactions',
+    'audit',
 ]
 
 MIDDLEWARE = [
@@ -130,6 +135,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Custom User Model
+AUTH_USER_MODEL = 'users.User'
 
 # Django REST Framework
 REST_FRAMEWORK = {

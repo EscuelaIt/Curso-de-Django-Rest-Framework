@@ -1,0 +1,132 @@
+@startuml Banking Model - Minimal
+!theme plain
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+' ===== ENTIDADES PRINCIPALES =====
+
+entity "Customer" as customer {
+  * id : BIGINT <<PK>>
+  --
+  * document_type : VARCHAR(10) <<UK>>
+  * document_number : VARCHAR(20) <<UK>>
+  * first_names : VARCHAR(100)
+  * last_names : VARCHAR(100)
+  * email : VARCHAR(255) <<UK>>
+  * phone : VARCHAR(20)
+  * birth_date : DATE
+  * address : TEXT
+  --
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * status : ENUM('ACTIVE','INACTIVE','SUSPENDED')
+  * version : INTEGER
+}
+
+entity "SavingsAccount" as savings_account {
+  * id : BIGINT <<PK>>
+  --
+  * account_number : VARCHAR(20) <<UK>>
+  * customer_id : BIGINT <<FK>>
+  --
+  * current_balance : DECIMAL(15,2)
+  * available_balance : DECIMAL(15,2)
+  * currency : VARCHAR(3)
+  --
+  * opening_date : TIMESTAMP
+  * last_movement_date : TIMESTAMP
+  * status : ENUM('ACTIVE','BLOCKED','CLOSED')
+  * version : INTEGER
+}
+
+entity "Transaction" as transaction {
+  * id : BIGINT <<PK>>
+  --
+  * reference_number : VARCHAR(50) <<UK>>
+  * transaction_type : ENUM('DEPOSIT','WITHDRAWAL','TRANSFER_OUT','TRANSFER_IN')
+  --
+  * source_account_id : BIGINT <<FK>>
+  * destination_account_id : BIGINT <<FK>> <<NULL>>
+  --
+  * amount : DECIMAL(15,2)
+  * currency : VARCHAR(3)
+  * description : VARCHAR(500)
+  --
+  * transaction_date : TIMESTAMP
+  * processing_date : TIMESTAMP <<NULL>>
+  * status : ENUM('PENDING','PROCESSED','REJECTED','REVERSED')
+  --
+  * previous_balance : DECIMAL(15,2)
+  * new_balance : DECIMAL(15,2)
+  --
+  * user_id : BIGINT <<FK>>
+  * ip_address : VARCHAR(45)
+  * user_agent : VARCHAR(500)
+}
+
+entity "User" as user {
+  * id : BIGINT <<PK>>
+  --
+  * username : VARCHAR(50) <<UK>>
+  * email : VARCHAR(255) <<UK>>
+  * password_hash : VARCHAR(255)
+  --
+  * first_names : VARCHAR(100)
+  * last_names : VARCHAR(100)
+  * role : ENUM('CUSTOMER','OPERATOR','ADMIN')
+  --
+  * customer_id : BIGINT <<FK>> <<NULL>>
+  --
+  * last_access : TIMESTAMP <<NULL>>
+  * failed_attempts : INTEGER
+  * blocked_until : TIMESTAMP <<NULL>>
+  --
+  * date_joined : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * is_active : BOOLEAN
+}
+
+entity "Audit" as audit {
+  * id : BIGINT <<PK>>
+  --
+  * affected_table : VARCHAR(50)
+  * record_id : BIGINT
+  * operation : ENUM('INSERT','UPDATE','DELETE')
+  --
+  * previous_data : JSON <<NULL>>
+  * new_data : JSON <<NULL>>
+  --
+  * user_id : BIGINT <<FK>>
+  * operation_date : TIMESTAMP
+  * ip_address : VARCHAR(45)
+  * user_agent : VARCHAR(500)
+  --
+  * context : VARCHAR(100)
+}
+
+' ===== RELACIONES =====
+
+customer ||--o{ savings_account : "owns"
+savings_account ||--o{ transaction : "source"
+savings_account ||--o{ transaction : "destination"
+user ||--o{ transaction : "executes"
+user ||--o{ audit : "generates"
+user }o--|| customer : "represents"
+
+' ===== ÍNDICES Y CONSTRAINTS =====
+
+note right of customer : **Índices:**\n- idx_customer_document\n- idx_customer_email\n- idx_customer_status\n\n**Constraints:**\n- UK: document_type + document_number\n- UK: email\n- CHK: status IN ('ACTIVE','INACTIVE','SUSPENDED')
+
+note right of savings_account : **Índices:**\n- idx_account_number\n- idx_account_customer\n- idx_account_status\n\n**Constraints:**\n- UK: account_number\n- CHK: current_balance >= 0\n- CHK: available_balance <= current_balance\n- CHK: status IN ('ACTIVE','BLOCKED','CLOSED')
+
+note right of transaction : **Índices:**\n- idx_transaction_reference\n- idx_transaction_source\n- idx_transaction_date\n- idx_transaction_status\n\n**Constraints:**\n- UK: reference_number\n- CHK: amount > 0\n- CHK: source_account_id != destination_account_id\n- CHK: status IN ('PENDING','PROCESSED','REJECTED','REVERSED')
+
+note right of user : **Índices:**\n- idx_user_username\n- idx_user_email\n- idx_user_customer\n\n**Constraints:**\n- UK: username\n- UK: email\n- CHK: role IN ('CUSTOMER','OPERATOR','ADMIN')
+
+note right of audit : **Índices:**\n- idx_audit_table_record\n- idx_audit_user\n- idx_audit_date\n\n**Particionado:**\n- Por operation_date (mensual)
+
+' ===== TRIGGERS Y REGLAS DE NEGOCIO =====
+
+note bottom of transaction : **Business Rules:**\n1. DEPOSIT: only source_account_id\n2. WITHDRAWAL: only source_account_id\n3. TRANSFER: both accounts required\n4. Atomicity: debit + credit in same transaction\n5. Balance cannot be negative\n6. Automatic audit on balance changes
+
+@enduml
