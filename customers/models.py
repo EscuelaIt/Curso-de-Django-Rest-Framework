@@ -102,6 +102,14 @@ class Customer(models.Model):
             raise ValidationError('El DNI debe tener 8 dígitos')
         elif self.document_type == 'CE' and len(self.document_number) != 9:
             raise ValidationError('El Carnet de Extranjería debe tener 9 caracteres')
+        
+        # Validate email domain restriction
+        if self.email:
+            if not self.email.lower().endswith('@escuela.it'):
+                raise ValidationError('Solo se permiten correos del dominio @escuela.it')
+            
+            # Normalize email to lowercase
+            self.email = self.email.lower()
     
     @property
     def full_name(self):

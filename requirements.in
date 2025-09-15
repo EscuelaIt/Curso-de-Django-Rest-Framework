@@ -1,6 +1,8 @@
 # Core Django dependencies
 Django>=4.2,<5.0
 djangorestframework>=3.14.0
+drf-spectacular>=0.28.0
+django-filter>=23.0
 
 # Database
 psycopg2-binary>=2.9.0

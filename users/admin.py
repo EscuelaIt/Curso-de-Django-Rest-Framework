@@ -95,6 +95,7 @@ class UserAdmin(BaseUserAdmin):
                 'first_names', 
                 'last_names',
                 'role',
+                'customer',  # ← Agregado para poder seleccionar cliente al crear
                 'password1', 
                 'password2'
             ),

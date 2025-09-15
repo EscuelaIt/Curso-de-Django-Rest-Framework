@@ -117,11 +117,10 @@ class SavingsAccount(models.Model):
     
     def save(self, *args, **kwargs):
         """Override save for validations and versioning"""
-        self.full_clean()
-        
-        # Generate account number if it doesn't exist
         if not self.account_number:
             self.account_number = self._generate_account_number()
+        
+        self.full_clean()
         
         # Increment version on each update (except first time)
         if self.pk:

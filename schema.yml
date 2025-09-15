@@ -1,0 +1,3575 @@
+openapi: 3.0.3
+info:
+  title: Banking System API
+  version: 1.0.0
+  description: API REST para sistema bancario con cuentas de ahorro, transacciones
+    y auditoría
+paths:
+  /api/users/:
+    get:
+      operationId: users_list
+      description: Retrieve a paginated list of all users in the banking system.
+      summary: List all users
+      parameters:
+      - in: query
+        name: customer
+        schema:
+          type: integer
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - in: query
+        name: role
+        schema:
+          type: string
+          enum:
+          - ADMIN
+          - CUSTOMER
+          - OPERATOR
+        description: |-
+          User role in the system
+
+          * `CUSTOMER` - Cliente
+          * `OPERATOR` - Operador
+          * `ADMIN` - Administrador
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
+      tags:
+      - Users
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserListList'
+          description: ''
+    post:
+      operationId: users_create
+      description: Create a new user in the banking system.
+      summary: Create a new user
+      tags:
+      - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreate'
+          description: ''
+  /api/users/change_password/:
+    post:
+      operationId: users_change_password_create
+      description: Change password for the authenticated user.
+      summary: Change user password
+      tags:
+      - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChangeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordChangeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordChangeRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/me/:
+    get:
+      operationId: users_me_retrieve
+      description: Get profile information for the currently authenticated user.
+      summary: Get current user profile
+      tags:
+      - Users
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/{id}/:
+    delete:
+      operationId: users_destroy
+      description: Delete a user from the system.
+      summary: Delete user
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Usuario.
+        required: true
+      tags:
+      - Users
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+    patch:
+      operationId: users_partial_update
+      description: ViewSet for managing banking system users.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Usuario.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserUpdateRequest'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserUpdate'
+          description: ''
+    put:
+      operationId: users_update
+      description: Update user information.
+      summary: Update user information
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Usuario.
+        required: true
+      tags:
+      - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserUpdate'
+          description: ''
+    get:
+      operationId: users_retrieve
+      description: Retrieve detailed information about a specific user.
+      summary: Get user details
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Usuario.
+        required: true
+      tags:
+      - Users
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/customers/:
+    get:
+      operationId: customers_list
+      description: Retrieve a paginated list of all customers.
+      summary: List all customers
+      parameters:
+      - in: query
+        name: document_type
+        schema:
+          type: string
+          enum:
+          - CE
+          - DNI
+          - PASSPORT
+        description: |-
+          Type of identity document
+
+          * `DNI` - Documento Nacional de Identidad
+          * `CE` - Carnet de Extranjería
+          * `PASSPORT` - Pasaporte
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - ACTIVE
+          - INACTIVE
+          - SUSPENDED
+        description: |-
+          Current customer status
+
+          * `ACTIVE` - Activo
+          * `INACTIVE` - Inactivo
+          * `SUSPENDED` - Suspendido
+      tags:
+      - Customers
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCustomerListList'
+          description: ''
+    post:
+      operationId: customers_create
+      description: Create a new customer in the banking system.
+      summary: Create a new customer
+      tags:
+      - Customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomerCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomerCreateRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerCreate'
+          description: ''
+  /api/customers/{id}/:
+    delete:
+      operationId: customers_destroy
+      description: Delete a customer from the system.
+      summary: Delete customer
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Cliente.
+        required: true
+      tags:
+      - Customers
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+    patch:
+      operationId: customers_partial_update
+      description: ViewSet for managing bank customers.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Cliente.
+        required: true
+      tags:
+      - customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerUpdateRequest'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerUpdate'
+          description: ''
+    put:
+      operationId: customers_update
+      description: Update customer information.
+      summary: Update customer information
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Cliente.
+        required: true
+      tags:
+      - Customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomerUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomerUpdateRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerUpdate'
+          description: ''
+    get:
+      operationId: customers_retrieve
+      description: Retrieve detailed information about a specific customer.
+      summary: Get customer details
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Cliente.
+        required: true
+      tags:
+      - Customers
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+          description: ''
+  /api/customers/{id}/change_status/:
+    post:
+      operationId: customers_change_status_create
+      description: Change the status of a customer (ACTIVE, INACTIVE, SUSPENDED).
+      summary: Change customer status
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Cliente.
+        required: true
+      tags:
+      - Customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerStatusRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomerStatusRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomerStatusRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerStatus'
+          description: ''
+  /api/customers/{id}/summary/:
+    get:
+      operationId: customers_summary_retrieve
+      description: Get customer summary with account and transaction information.
+      summary: Get customer summary
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Cliente.
+        required: true
+      tags:
+      - Customers
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSummary'
+          description: ''
+  /api/accounts/:
+    get:
+      operationId: accounts_list
+      description: Retrieve a paginated list of all savings accounts.
+      summary: List all savings accounts
+      parameters:
+      - in: query
+        name: currency
+        schema:
+          type: string
+          enum:
+          - EUR
+          - PEN
+          - USD
+        description: |-
+          Account currency
+
+          * `PEN` - Soles Peruanos
+          * `USD` - Dólares Americanos
+          * `EUR` - Euros
+      - in: query
+        name: customer
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - ACTIVE
+          - BLOCKED
+          - CLOSED
+        description: |-
+          Current account status
+
+          * `ACTIVE` - Activa
+          * `BLOCKED` - Bloqueada
+          * `CLOSED` - Cerrada
+      tags:
+      - Accounts
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSavingsAccountListList'
+          description: ''
+    post:
+      operationId: accounts_create
+      description: Create a new savings account for a customer.
+      summary: Create a new savings account
+      tags:
+      - Accounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavingsAccountCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SavingsAccountCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SavingsAccountCreateRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavingsAccountCreate'
+          description: ''
+  /api/accounts/{id}/:
+    delete:
+      operationId: accounts_destroy
+      description: Delete an account from the system.
+      summary: Delete account
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Cuenta de Ahorro.
+        required: true
+      tags:
+      - Accounts
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+    patch:
+      operationId: accounts_partial_update
+      description: ViewSet for managing savings accounts.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Cuenta de Ahorro.
+        required: true
+      tags:
+      - accounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSavingsAccountUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSavingsAccountUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSavingsAccountUpdateRequest'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavingsAccountUpdate'
+          description: ''
+    put:
+      operationId: accounts_update
+      description: Update account information.
+      summary: Update account information
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Cuenta de Ahorro.
+        required: true
+      tags:
+      - Accounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavingsAccountUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SavingsAccountUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SavingsAccountUpdateRequest'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavingsAccountUpdate'
+          description: ''
+    get:
+      operationId: accounts_retrieve
+      description: Retrieve detailed information about a specific account.
+      summary: Get account details
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Cuenta de Ahorro.
+        required: true
+      tags:
+      - Accounts
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavingsAccount'
+          description: ''
+  /api/accounts/{id}/balance/:
+    get:
+      operationId: accounts_balance_retrieve
+      description: Get current balance information for an account.
+      summary: Get account balance
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Cuenta de Ahorro.
+        required: true
+      tags:
+      - Accounts
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavingsAccountBalance'
+          description: ''
+  /api/accounts/{id}/change_status/:
+    post:
+      operationId: accounts_change_status_create
+      description: Change the status of an account (ACTIVE, BLOCKED, CLOSED).
+      summary: Change account status
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Cuenta de Ahorro.
+        required: true
+      tags:
+      - Accounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavingsAccountStatusRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SavingsAccountStatusRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SavingsAccountStatusRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavingsAccountStatus'
+          description: ''
+  /api/accounts/{id}/summary/:
+    get:
+      operationId: accounts_summary_retrieve
+      description: Get account summary with transaction statistics.
+      summary: Get account summary
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Cuenta de Ahorro.
+        required: true
+      tags:
+      - Accounts
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavingsAccountSummary'
+          description: ''
+  /api/transactions/:
+    get:
+      operationId: transactions_list
+      description: Retrieve a paginated list of all transactions.
+      summary: List all transactions
+      parameters:
+      - in: query
+        name: currency
+        schema:
+          type: string
+          enum:
+          - EUR
+          - PEN
+          - USD
+        description: |-
+          Transaction currency
+
+          * `PEN` - Soles Peruanos
+          * `USD` - Dólares Americanos
+          * `EUR` - Euros
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
+      - in: query
+        name: source_account
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - PENDING
+          - PROCESSED
+          - REJECTED
+          - REVERSED
+        description: |-
+          Transaction status
+
+          * `PENDING` - Pendiente
+          * `PROCESSED` - Procesada
+          * `REJECTED` - Rechazada
+          * `REVERSED` - Reversada
+      - in: query
+        name: transaction_type
+        schema:
+          type: string
+          enum:
+          - DEPOSIT
+          - TRANSFER_IN
+          - TRANSFER_OUT
+          - WITHDRAWAL
+        description: |-
+          Type of transaction
+
+          * `DEPOSIT` - Depósito
+          * `WITHDRAWAL` - Retiro
+          * `TRANSFER_OUT` - Transferencia Salida
+          * `TRANSFER_IN` - Transferencia Entrada
+      - in: query
+        name: user
+        schema:
+          type: integer
+      tags:
+      - Transactions
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTransactionListList'
+          description: ''
+    post:
+      operationId: transactions_create
+      description: Create a new transaction in the banking system.
+      summary: Create a new transaction
+      tags:
+      - Transactions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TransactionCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TransactionCreateRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionCreate'
+          description: ''
+  /api/transactions/deposit/:
+    post:
+      operationId: transactions_deposit_create
+      description: Create a deposit transaction to an account.
+      summary: Make a deposit
+      tags:
+      - Transactions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepositRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DepositRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DepositRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deposit'
+          description: ''
+  /api/transactions/transfer/:
+    post:
+      operationId: transactions_transfer_create
+      description: Create a transfer transaction between accounts.
+      summary: Make a transfer
+      tags:
+      - Transactions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transfer'
+          description: ''
+  /api/transactions/withdrawal/:
+    post:
+      operationId: transactions_withdrawal_create
+      description: Create a withdrawal transaction from an account.
+      summary: Make a withdrawal
+      tags:
+      - Transactions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawalRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WithdrawalRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WithdrawalRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Withdrawal'
+          description: ''
+  /api/transactions/{id}/:
+    delete:
+      operationId: transactions_destroy
+      description: ViewSet for managing banking transactions.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Transacción.
+        required: true
+      tags:
+      - transactions
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+    patch:
+      operationId: transactions_partial_update
+      description: ViewSet for managing banking transactions.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Transacción.
+        required: true
+      tags:
+      - transactions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTransactionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTransactionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTransactionRequest'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: ''
+    put:
+      operationId: transactions_update
+      description: Update transaction information (limited fields).
+      summary: Update transaction
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Transacción.
+        required: true
+      tags:
+      - Transactions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: ''
+    get:
+      operationId: transactions_retrieve
+      description: Retrieve detailed information about a specific transaction.
+      summary: Get transaction details
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Transacción.
+        required: true
+      tags:
+      - Transactions
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: ''
+  /api/transactions/{id}/change_status/:
+    post:
+      operationId: transactions_change_status_create
+      description: Change the status of a transaction (PROCESSED, REJECTED, REVERSED).
+      summary: Change transaction status
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Transacción.
+        required: true
+      tags:
+      - Transactions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionStatusRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TransactionStatusRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TransactionStatusRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionStatus'
+          description: ''
+  /api/audit/:
+    get:
+      operationId: audit_list
+      description: Retrieve a paginated list of audit log entries.
+      summary: List audit logs
+      parameters:
+      - in: query
+        name: affected_table
+        schema:
+          type: string
+      - in: query
+        name: context
+        schema:
+          type: string
+      - in: query
+        name: operation
+        schema:
+          type: string
+          enum:
+          - DELETE
+          - INSERT
+          - UPDATE
+        description: |-
+          Type of database operation performed
+
+          * `INSERT` - Inserción
+          * `UPDATE` - Actualización
+          * `DELETE` - Eliminación
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
+      - in: query
+        name: user
+        schema:
+          type: integer
+      tags:
+      - Audit
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAuditListList'
+          description: ''
+  /api/audit/summary/:
+    get:
+      operationId: audit_summary_retrieve
+      description: Get audit statistics and summary information.
+      summary: Get audit summary
+      tags:
+      - Audit
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditSummary'
+          description: ''
+  /api/audit/{id}/:
+    get:
+      operationId: audit_retrieve
+      description: Retrieve detailed information about a specific audit log entry.
+      summary: Get audit log details
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este Auditoría.
+        required: true
+      tags:
+      - Audit
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditDetail'
+          description: ''
+components:
+  schemas:
+    AuditDetail:
+      type: object
+      description: |-
+        Detailed serializer for individual audit records.
+        Includes complete change information and metadata.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        affected_table:
+          type: string
+          description: Name of the affected database table
+          maxLength: 50
+        record_id:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: ID of the affected record
+        operation:
+          allOf:
+          - $ref: '#/components/schemas/OperationEnum'
+          description: |-
+            Type of database operation performed
+
+            * `INSERT` - Inserción
+            * `UPDATE` - Actualización
+            * `DELETE` - Eliminación
+        operation_display:
+          type: string
+          readOnly: true
+        previous_data:
+          nullable: true
+          description: Previous data before the operation (JSON format)
+        new_data:
+          nullable: true
+          description: New data after the operation (JSON format)
+        user:
+          type: integer
+          description: User who performed the operation
+        user_name:
+          type: string
+          readOnly: true
+        user_full_name:
+          type: string
+          readOnly: true
+        user_email:
+          type: string
+          readOnly: true
+        operation_date:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Date and time when the operation was performed
+        ip_address:
+          type: string
+          description: IP address from which the operation was performed
+        user_agent:
+          type: string
+          description: User agent information from the request
+          maxLength: 500
+        context:
+          type: string
+          description: Additional context about the operation (e.g., 'admin_panel',
+            'api_rest')
+          maxLength: 100
+        has_data_changes:
+          type: boolean
+          readOnly: true
+        changed_fields:
+          type: array
+          items: {}
+          readOnly: true
+        changes_summary:
+          type: string
+          readOnly: true
+        field_changes:
+          type: object
+          additionalProperties: {}
+          description: Detailed field-by-field changes
+          readOnly: true
+      required:
+      - affected_table
+      - changed_fields
+      - changes_summary
+      - field_changes
+      - has_data_changes
+      - id
+      - ip_address
+      - operation
+      - operation_date
+      - operation_display
+      - record_id
+      - user
+      - user_email
+      - user_full_name
+      - user_name
+    AuditList:
+      type: object
+      description: |-
+        Simplified serializer for audit listings.
+        Optimized for list views with essential information.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        affected_table:
+          type: string
+          description: Name of the affected database table
+          maxLength: 50
+        record_id:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: ID of the affected record
+        operation:
+          allOf:
+          - $ref: '#/components/schemas/OperationEnum'
+          description: |-
+            Type of database operation performed
+
+            * `INSERT` - Inserción
+            * `UPDATE` - Actualización
+            * `DELETE` - Eliminación
+        operation_display:
+          type: string
+          readOnly: true
+        user_name:
+          type: string
+          readOnly: true
+        operation_date:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Date and time when the operation was performed
+        context:
+          type: string
+          description: Additional context about the operation (e.g., 'admin_panel',
+            'api_rest')
+          maxLength: 100
+        changes_summary:
+          type: string
+          readOnly: true
+      required:
+      - affected_table
+      - changes_summary
+      - id
+      - operation
+      - operation_date
+      - operation_display
+      - record_id
+      - user_name
+    AuditSummary:
+      type: object
+      description: |-
+        Serializer for audit statistics and summaries.
+        Contract-first for dashboard and reporting endpoints.
+      properties:
+        total_operations:
+          type: integer
+          readOnly: true
+          description: Total number of operations
+        operations_by_type:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+          description: Count of operations by type
+        operations_by_table:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+          description: Count of operations by table
+        operations_by_user:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+          description: Count of operations by user
+        recent_activity:
+          type: array
+          items: {}
+          readOnly: true
+          description: Recent audit entries
+        date_range:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+          description: Date range of the summary
+      required:
+      - date_range
+      - operations_by_table
+      - operations_by_type
+      - operations_by_user
+      - recent_activity
+      - total_operations
+    CurrencyEnum:
+      enum:
+      - PEN
+      - USD
+      - EUR
+      type: string
+      description: |-
+        * `PEN` - Soles Peruanos
+        * `USD` - Dólares Americanos
+        * `EUR` - Euros
+    Customer:
+      type: object
+      description: |-
+        Complete serializer for Customer model.
+        Includes computed fields and validation for banking requirements.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        document_type:
+          allOf:
+          - $ref: '#/components/schemas/DocumentTypeEnum'
+          description: |-
+            Type of identity document
+
+            * `DNI` - Documento Nacional de Identidad
+            * `CE` - Carnet de Extranjería
+            * `PASSPORT` - Pasaporte
+        document_number:
+          type: string
+          description: Document number without spaces or hyphens
+          pattern: ^[A-Z0-9]+$
+          maxLength: 20
+        first_names:
+          type: string
+          description: Customer's first names
+          maxLength: 100
+        last_names:
+          type: string
+          description: Customer's last names
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          pattern: .*@escuela\.it$
+          description: Customer's unique email (must be @escuela.it domain)
+          maxLength: 254
+        phone:
+          type: string
+          description: Contact phone number
+          pattern: ^\+?[0-9\-\s]+$
+          maxLength: 20
+        birth_date:
+          type: string
+          format: date
+          description: Date of birth
+        address:
+          type: string
+          description: Complete address
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status3daEnum'
+          description: |-
+            Current customer status
+
+            * `ACTIVE` - Activo
+            * `INACTIVE` - Inactivo
+            * `SUSPENDED` - Suspendido
+        version:
+          type: integer
+          readOnly: true
+          description: Version for change control
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Registration date in the system
+        full_name:
+          type: string
+          readOnly: true
+          description: Customer's full name
+        age:
+          type: integer
+          readOnly: true
+          description: Customer's current age
+        full_document:
+          type: string
+          readOnly: true
+          description: Document type and number
+        accounts_count:
+          type: integer
+          description: Number of savings accounts
+          readOnly: true
+      required:
+      - accounts_count
+      - address
+      - age
+      - birth_date
+      - created_at
+      - document_number
+      - document_type
+      - email
+      - first_names
+      - full_document
+      - full_name
+      - id
+      - last_names
+      - phone
+      - updated_at
+      - version
+    CustomerCreate:
+      type: object
+      description: |-
+        Serializer for creating new customers.
+        Contract-first approach with all required validations.
+      properties:
+        document_type:
+          allOf:
+          - $ref: '#/components/schemas/DocumentTypeEnum'
+          description: |-
+            Type of identity document
+
+            * `DNI` - Documento Nacional de Identidad
+            * `CE` - Carnet de Extranjería
+            * `PASSPORT` - Pasaporte
+        document_number:
+          type: string
+          description: Document number (8 digits for DNI, 9 for CE)
+          pattern: ^[A-Z0-9]+$
+          maxLength: 20
+        first_names:
+          type: string
+          description: Customer's first names
+          maxLength: 100
+        last_names:
+          type: string
+          description: Customer's last names
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          pattern: .*@escuela\.it$
+          description: Unique email address (must be @escuela.it domain)
+          maxLength: 254
+        phone:
+          type: string
+          description: Contact phone number
+          pattern: ^\+?[0-9\-\s]+$
+          maxLength: 20
+        birth_date:
+          type: string
+          format: date
+          description: Date of birth (must be 18+ years old)
+        address:
+          type: string
+          description: Complete address
+      required:
+      - address
+      - birth_date
+      - document_number
+      - document_type
+      - email
+      - first_names
+      - last_names
+      - phone
+    CustomerCreateRequest:
+      type: object
+      description: |-
+        Serializer for creating new customers.
+        Contract-first approach with all required validations.
+      properties:
+        document_type:
+          allOf:
+          - $ref: '#/components/schemas/DocumentTypeEnum'
+          description: |-
+            Type of identity document
+
+            * `DNI` - Documento Nacional de Identidad
+            * `CE` - Carnet de Extranjería
+            * `PASSPORT` - Pasaporte
+        document_number:
+          type: string
+          minLength: 1
+          description: Document number (8 digits for DNI, 9 for CE)
+          pattern: ^[A-Z0-9]+$
+          maxLength: 20
+        first_names:
+          type: string
+          minLength: 1
+          description: Customer's first names
+          maxLength: 100
+        last_names:
+          type: string
+          minLength: 1
+          description: Customer's last names
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          pattern: .*@escuela\.it$
+          minLength: 1
+          description: Unique email address (must be @escuela.it domain)
+          maxLength: 254
+        phone:
+          type: string
+          minLength: 1
+          description: Contact phone number
+          pattern: ^\+?[0-9\-\s]+$
+          maxLength: 20
+        birth_date:
+          type: string
+          format: date
+          description: Date of birth (must be 18+ years old)
+        address:
+          type: string
+          minLength: 1
+          description: Complete address
+      required:
+      - address
+      - birth_date
+      - document_number
+      - document_type
+      - email
+      - first_names
+      - last_names
+      - phone
+    CustomerList:
+      type: object
+      description: |-
+        Simplified serializer for customer listings.
+        Optimized for list views with essential information.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+        full_document:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          pattern: .*@escuela\.it$
+          description: Customer's unique email (must be @escuela.it domain)
+          maxLength: 254
+        phone:
+          type: string
+          description: Contact phone number
+          pattern: ^\+?[0-9\-\s]+$
+          maxLength: 20
+        age:
+          type: integer
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status3daEnum'
+          description: |-
+            Current customer status
+
+            * `ACTIVE` - Activo
+            * `INACTIVE` - Inactivo
+            * `SUSPENDED` - Suspendido
+        status_display:
+          type: string
+          readOnly: true
+        accounts_count:
+          type: integer
+          description: Get number of savings accounts
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Registration date in the system
+      required:
+      - accounts_count
+      - age
+      - created_at
+      - email
+      - full_document
+      - full_name
+      - id
+      - phone
+      - status_display
+    CustomerStatus:
+      type: object
+      description: |-
+        Serializer for customer status change operations.
+        Contract-first for status management endpoints.
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/CustomerStatusStatusEnum'
+          description: |-
+            New status for the customer
+
+            * `ACTIVE` - Active
+            * `INACTIVE` - Inactive
+            * `SUSPENDED` - Suspended
+        reason:
+          type: string
+          description: Optional reason for status change
+          maxLength: 200
+      required:
+      - status
+    CustomerStatusRequest:
+      type: object
+      description: |-
+        Serializer for customer status change operations.
+        Contract-first for status management endpoints.
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/CustomerStatusStatusEnum'
+          description: |-
+            New status for the customer
+
+            * `ACTIVE` - Active
+            * `INACTIVE` - Inactive
+            * `SUSPENDED` - Suspended
+        reason:
+          type: string
+          minLength: 1
+          description: Optional reason for status change
+          maxLength: 200
+      required:
+      - status
+    CustomerStatusStatusEnum:
+      enum:
+      - ACTIVE
+      - INACTIVE
+      - SUSPENDED
+      type: string
+      description: |-
+        * `ACTIVE` - Active
+        * `INACTIVE` - Inactive
+        * `SUSPENDED` - Suspended
+    CustomerSummary:
+      type: object
+      description: |-
+        Summary serializer with financial information.
+        Includes account balances and transaction counts.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          pattern: .*@escuela\.it$
+          description: Customer's unique email (must be @escuela.it domain)
+          maxLength: 254
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status3daEnum'
+          description: |-
+            Current customer status
+
+            * `ACTIVE` - Activo
+            * `INACTIVE` - Inactivo
+            * `SUSPENDED` - Suspendido
+        accounts_count:
+          type: integer
+          description: Number of active savings accounts
+          readOnly: true
+        total_balance:
+          type: number
+          format: double
+          description: Total balance across all active accounts
+          readOnly: true
+        recent_transactions:
+          type: integer
+          description: Count of transactions in last 30 days
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Registration date in the system
+      required:
+      - accounts_count
+      - created_at
+      - email
+      - full_name
+      - id
+      - recent_transactions
+      - total_balance
+    CustomerUpdate:
+      type: object
+      description: |-
+        Serializer for updating customer information.
+        Excludes document fields that shouldn't be changed.
+      properties:
+        first_names:
+          type: string
+          description: Customer's first names
+          maxLength: 100
+        last_names:
+          type: string
+          description: Customer's last names
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          pattern: .*@escuela\.it$
+          description: Customer's unique email (must be @escuela.it domain)
+          maxLength: 254
+        phone:
+          type: string
+          description: Contact phone number
+          pattern: ^\+?[0-9\-\s]+$
+          maxLength: 20
+        address:
+          type: string
+          description: Complete address
+      required:
+      - address
+      - first_names
+      - last_names
+      - phone
+    CustomerUpdateRequest:
+      type: object
+      description: |-
+        Serializer for updating customer information.
+        Excludes document fields that shouldn't be changed.
+      properties:
+        first_names:
+          type: string
+          minLength: 1
+          description: Customer's first names
+          maxLength: 100
+        last_names:
+          type: string
+          minLength: 1
+          description: Customer's last names
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          pattern: .*@escuela\.it$
+          minLength: 1
+          description: Customer's unique email (must be @escuela.it domain)
+          maxLength: 254
+        phone:
+          type: string
+          minLength: 1
+          description: Contact phone number
+          pattern: ^\+?[0-9\-\s]+$
+          maxLength: 20
+        address:
+          type: string
+          minLength: 1
+          description: Complete address
+      required:
+      - address
+      - first_names
+      - last_names
+      - phone
+    Deposit:
+      type: object
+      description: |-
+        Specialized serializer for deposit operations.
+        Contract-first approach for specific transaction type.
+      properties:
+        account_number:
+          type: string
+          description: Account number to deposit to
+          maxLength: 20
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Deposit amount (must be positive)
+        description:
+          type: string
+          description: Optional deposit description
+          maxLength: 500
+      required:
+      - account_number
+      - amount
+    DepositRequest:
+      type: object
+      description: |-
+        Specialized serializer for deposit operations.
+        Contract-first approach for specific transaction type.
+      properties:
+        account_number:
+          type: string
+          minLength: 1
+          description: Account number to deposit to
+          maxLength: 20
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Deposit amount (must be positive)
+        description:
+          type: string
+          minLength: 1
+          description: Optional deposit description
+          maxLength: 500
+      required:
+      - account_number
+      - amount
+    DocumentTypeEnum:
+      enum:
+      - DNI
+      - CE
+      - PASSPORT
+      type: string
+      description: |-
+        * `DNI` - Documento Nacional de Identidad
+        * `CE` - Carnet de Extranjería
+        * `PASSPORT` - Pasaporte
+    OperationEnum:
+      enum:
+      - INSERT
+      - UPDATE
+      - DELETE
+      type: string
+      description: |-
+        * `INSERT` - Inserción
+        * `UPDATE` - Actualización
+        * `DELETE` - Eliminación
+    PaginatedAuditListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditList'
+    PaginatedCustomerListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerList'
+    PaginatedSavingsAccountListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavingsAccountList'
+    PaginatedTransactionListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionList'
+    PaginatedUserListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserList'
+    PasswordChangeRequest:
+      type: object
+      description: |-
+        Serializer for password change operations.
+        Contract-first with security validations.
+      properties:
+        old_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+          description: Current password for verification
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+          description: New password must meet validation requirements
+        new_password_confirm:
+          type: string
+          writeOnly: true
+          minLength: 1
+          description: Confirmation of new password
+      required:
+      - new_password
+      - new_password_confirm
+      - old_password
+    PatchedCustomerUpdateRequest:
+      type: object
+      description: |-
+        Serializer for updating customer information.
+        Excludes document fields that shouldn't be changed.
+      properties:
+        first_names:
+          type: string
+          minLength: 1
+          description: Customer's first names
+          maxLength: 100
+        last_names:
+          type: string
+          minLength: 1
+          description: Customer's last names
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          pattern: .*@escuela\.it$
+          minLength: 1
+          description: Customer's unique email (must be @escuela.it domain)
+          maxLength: 254
+        phone:
+          type: string
+          minLength: 1
+          description: Contact phone number
+          pattern: ^\+?[0-9\-\s]+$
+          maxLength: 20
+        address:
+          type: string
+          minLength: 1
+          description: Complete address
+    PatchedSavingsAccountUpdateRequest:
+      type: object
+      description: |-
+        Serializer for updating account information.
+        Limited fields that can be safely updated.
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status254Enum'
+          description: |-
+            Account status (ACTIVE, BLOCKED, CLOSED)
+
+            * `ACTIVE` - Activa
+            * `BLOCKED` - Bloqueada
+            * `CLOSED` - Cerrada
+    PatchedTransactionRequest:
+      type: object
+      description: |-
+        Complete serializer for Transaction model.
+        Includes account and user information with computed fields.
+      properties:
+        transaction_type:
+          allOf:
+          - $ref: '#/components/schemas/TransactionTypeEnum'
+          description: |-
+            Type of transaction
+
+            * `DEPOSIT` - Depósito
+            * `WITHDRAWAL` - Retiro
+            * `TRANSFER_OUT` - Transferencia Salida
+            * `TRANSFER_IN` - Transferencia Entrada
+        source_account:
+          type: integer
+          description: Source account for the transaction
+        destination_account:
+          type: integer
+          nullable: true
+          description: Destination account (only for transfers)
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Transaction amount
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          description: |-
+            Transaction currency
+
+            * `PEN` - Soles Peruanos
+            * `USD` - Dólares Americanos
+            * `EUR` - Euros
+        description:
+          type: string
+          description: Transaction description
+          maxLength: 500
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status7f5Enum'
+          description: |-
+            Transaction status
+
+            * `PENDING` - Pendiente
+            * `PROCESSED` - Procesada
+            * `REJECTED` - Rechazada
+            * `REVERSED` - Reversada
+        user:
+          type: integer
+          description: User who executed the transaction
+        ip_address:
+          type: string
+          minLength: 1
+          description: IP address of origin
+        user_agent:
+          type: string
+          description: User agent information
+          maxLength: 500
+    PatchedUserUpdateRequest:
+      type: object
+      description: |-
+        Serializer for updating user information.
+        Excludes sensitive fields that require special handling.
+      properties:
+        email:
+          type: string
+          format: email
+          pattern: .*@escuela\.it$
+          title: Dirección de correo electrónico (debe ser @escuela.it)
+          maxLength: 254
+        first_names:
+          type: string
+          minLength: 1
+          description: First names of the user
+          maxLength: 100
+        last_names:
+          type: string
+          minLength: 1
+          description: Last names of the user
+          maxLength: 100
+        is_active:
+          type: boolean
+          title: Activo
+          description: Indica si el usuario debe ser tratado como activo. Desmarque
+            esta opción en lugar de borrar la cuenta.
+    RoleEnum:
+      enum:
+      - CUSTOMER
+      - OPERATOR
+      - ADMIN
+      type: string
+      description: |-
+        * `CUSTOMER` - Cliente
+        * `OPERATOR` - Operador
+        * `ADMIN` - Administrador
+    SavingsAccount:
+      type: object
+      description: |-
+        Complete serializer for SavingsAccount model.
+        Includes customer information and computed fields.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        account_number:
+          type: string
+          readOnly: true
+          description: Unique bank account number
+        customer:
+          type: integer
+          description: Account owner customer ID
+        customer_name:
+          type: string
+          readOnly: true
+        customer_document:
+          type: string
+          readOnly: true
+        current_balance:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Current account balance
+        available_balance:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Available balance for operations
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          description: |-
+            Account currency (PEN, USD, EUR)
+
+            * `PEN` - Soles Peruanos
+            * `USD` - Dólares Americanos
+            * `EUR` - Euros
+        balance_display:
+          type: string
+          readOnly: true
+          description: Formatted balance with currency
+        opening_date:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Account opening date
+        last_movement_date:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          description: Date of last transaction
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status254Enum'
+          description: |-
+            Current account status
+
+            * `ACTIVE` - Activa
+            * `BLOCKED` - Bloqueada
+            * `CLOSED` - Cerrada
+        version:
+          type: integer
+          readOnly: true
+          description: Version for change control
+        is_active:
+          type: boolean
+          readOnly: true
+          description: Whether account is active
+        is_blocked:
+          type: boolean
+          readOnly: true
+          description: Whether account is blocked
+        transactions_count:
+          type: integer
+          description: Total number of transactions
+          readOnly: true
+      required:
+      - account_number
+      - balance_display
+      - currency
+      - customer
+      - customer_document
+      - customer_name
+      - id
+      - is_active
+      - is_blocked
+      - last_movement_date
+      - opening_date
+      - transactions_count
+      - version
+    SavingsAccountBalance:
+      type: object
+      description: |-
+        Serializer focused on balance information.
+        Used for balance inquiry endpoints.
+      properties:
+        account_number:
+          type: string
+          description: Unique bank account number
+          maxLength: 20
+        current_balance:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Current account balance
+        available_balance:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Available balance for operations
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          description: |-
+            Account currency
+
+            * `PEN` - Soles Peruanos
+            * `USD` - Dólares Americanos
+            * `EUR` - Euros
+        balance_display:
+          type: string
+          readOnly: true
+        last_movement_date:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date of last transaction
+      required:
+      - account_number
+      - balance_display
+    SavingsAccountCreate:
+      type: object
+      description: |-
+        Serializer for creating new savings accounts.
+        Contract-first approach with validation rules.
+      properties:
+        customer:
+          type: integer
+          description: Customer who will own the account
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          description: |-
+            Account currency (PEN, USD, EUR)
+
+            * `PEN` - Soles Peruanos
+            * `USD` - Dólares Americanos
+            * `EUR` - Euros
+        initial_deposit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Optional initial deposit amount
+      required:
+      - currency
+      - customer
+    SavingsAccountCreateRequest:
+      type: object
+      description: |-
+        Serializer for creating new savings accounts.
+        Contract-first approach with validation rules.
+      properties:
+        customer:
+          type: integer
+          description: Customer who will own the account
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          description: |-
+            Account currency (PEN, USD, EUR)
+
+            * `PEN` - Soles Peruanos
+            * `USD` - Dólares Americanos
+            * `EUR` - Euros
+        initial_deposit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Optional initial deposit amount
+      required:
+      - currency
+      - customer
+    SavingsAccountList:
+      type: object
+      description: |-
+        Simplified serializer for account listings.
+        Optimized for list views with essential information.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        account_number:
+          type: string
+          description: Unique bank account number
+          maxLength: 20
+        customer_name:
+          type: string
+          readOnly: true
+        current_balance:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Current account balance
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          description: |-
+            Account currency
+
+            * `PEN` - Soles Peruanos
+            * `USD` - Dólares Americanos
+            * `EUR` - Euros
+        balance_display:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status254Enum'
+          description: |-
+            Current account status
+
+            * `ACTIVE` - Activa
+            * `BLOCKED` - Bloqueada
+            * `CLOSED` - Cerrada
+        status_display:
+          type: string
+          readOnly: true
+        opening_date:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Account opening date
+        last_movement_date:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date of last transaction
+        days_since_opening:
+          type: integer
+          description: Calculate days since account opening
+          readOnly: true
+      required:
+      - account_number
+      - balance_display
+      - customer_name
+      - days_since_opening
+      - id
+      - opening_date
+      - status_display
+    SavingsAccountStatus:
+      type: object
+      description: |-
+        Serializer for account status change operations.
+        Contract-first for status management endpoints.
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SavingsAccountStatusStatusEnum'
+          description: |-
+            New status for the account
+
+            * `ACTIVE` - Active
+            * `BLOCKED` - Blocked
+            * `CLOSED` - Closed
+        reason:
+          type: string
+          description: Optional reason for status change
+          maxLength: 200
+      required:
+      - status
+    SavingsAccountStatusRequest:
+      type: object
+      description: |-
+        Serializer for account status change operations.
+        Contract-first for status management endpoints.
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SavingsAccountStatusStatusEnum'
+          description: |-
+            New status for the account
+
+            * `ACTIVE` - Active
+            * `BLOCKED` - Blocked
+            * `CLOSED` - Closed
+        reason:
+          type: string
+          minLength: 1
+          description: Optional reason for status change
+          maxLength: 200
+      required:
+      - status
+    SavingsAccountStatusStatusEnum:
+      enum:
+      - ACTIVE
+      - BLOCKED
+      - CLOSED
+      type: string
+      description: |-
+        * `ACTIVE` - Active
+        * `BLOCKED` - Blocked
+        * `CLOSED` - Closed
+    SavingsAccountSummary:
+      type: object
+      description: |-
+        Summary serializer with transaction statistics.
+        Includes recent activity and balance history.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        account_number:
+          type: string
+          description: Unique bank account number
+          maxLength: 20
+        customer_name:
+          type: string
+          readOnly: true
+        current_balance:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Current account balance
+        available_balance:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Available balance for operations
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          description: |-
+            Account currency
+
+            * `PEN` - Soles Peruanos
+            * `USD` - Dólares Americanos
+            * `EUR` - Euros
+        balance_display:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status254Enum'
+          description: |-
+            Current account status
+
+            * `ACTIVE` - Activa
+            * `BLOCKED` - Bloqueada
+            * `CLOSED` - Cerrada
+        opening_date:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Account opening date
+        last_movement_date:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date of last transaction
+        total_transactions:
+          type: integer
+          description: Total number of transactions
+          readOnly: true
+        recent_transactions:
+          type: integer
+          description: Transactions in last 30 days
+          readOnly: true
+        average_monthly_balance:
+          type: number
+          format: double
+          description: Calculate average balance over account lifetime
+          readOnly: true
+      required:
+      - account_number
+      - average_monthly_balance
+      - balance_display
+      - customer_name
+      - id
+      - opening_date
+      - recent_transactions
+      - total_transactions
+    SavingsAccountUpdate:
+      type: object
+      description: |-
+        Serializer for updating account information.
+        Limited fields that can be safely updated.
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status254Enum'
+          description: |-
+            Account status (ACTIVE, BLOCKED, CLOSED)
+
+            * `ACTIVE` - Activa
+            * `BLOCKED` - Bloqueada
+            * `CLOSED` - Cerrada
+    SavingsAccountUpdateRequest:
+      type: object
+      description: |-
+        Serializer for updating account information.
+        Limited fields that can be safely updated.
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status254Enum'
+          description: |-
+            Account status (ACTIVE, BLOCKED, CLOSED)
+
+            * `ACTIVE` - Activa
+            * `BLOCKED` - Bloqueada
+            * `CLOSED` - Cerrada
+    Status254Enum:
+      enum:
+      - ACTIVE
+      - BLOCKED
+      - CLOSED
+      type: string
+      description: |-
+        * `ACTIVE` - Activa
+        * `BLOCKED` - Bloqueada
+        * `CLOSED` - Cerrada
+    Status3daEnum:
+      enum:
+      - ACTIVE
+      - INACTIVE
+      - SUSPENDED
+      type: string
+      description: |-
+        * `ACTIVE` - Activo
+        * `INACTIVE` - Inactivo
+        * `SUSPENDED` - Suspendido
+    Status7f5Enum:
+      enum:
+      - PENDING
+      - PROCESSED
+      - REJECTED
+      - REVERSED
+      type: string
+      description: |-
+        * `PENDING` - Pendiente
+        * `PROCESSED` - Procesada
+        * `REJECTED` - Rechazada
+        * `REVERSED` - Reversada
+    Transaction:
+      type: object
+      description: |-
+        Complete serializer for Transaction model.
+        Includes account and user information with computed fields.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        reference_number:
+          type: string
+          readOnly: true
+          description: Unique transaction reference number
+        transaction_type:
+          allOf:
+          - $ref: '#/components/schemas/TransactionTypeEnum'
+          description: |-
+            Type of transaction
+
+            * `DEPOSIT` - Depósito
+            * `WITHDRAWAL` - Retiro
+            * `TRANSFER_OUT` - Transferencia Salida
+            * `TRANSFER_IN` - Transferencia Entrada
+        transaction_type_display:
+          type: string
+          readOnly: true
+        source_account:
+          type: integer
+          description: Source account for the transaction
+        source_account_number:
+          type: string
+          readOnly: true
+        destination_account:
+          type: integer
+          nullable: true
+          description: Destination account (only for transfers)
+        destination_account_number:
+          type: string
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Transaction amount
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          description: |-
+            Transaction currency
+
+            * `PEN` - Soles Peruanos
+            * `USD` - Dólares Americanos
+            * `EUR` - Euros
+        amount_display:
+          type: string
+          readOnly: true
+          description: Formatted amount with currency
+        description:
+          type: string
+          description: Transaction description
+          maxLength: 500
+        previous_balance:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          readOnly: true
+          description: Balance before transaction
+        new_balance:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          readOnly: true
+          description: Balance after transaction
+        transaction_date:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Transaction creation date
+        processing_date:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          description: Transaction processing date
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status7f5Enum'
+          description: |-
+            Transaction status
+
+            * `PENDING` - Pendiente
+            * `PROCESSED` - Procesada
+            * `REJECTED` - Rechazada
+            * `REVERSED` - Reversada
+        status_display:
+          type: string
+          readOnly: true
+        user:
+          type: integer
+          description: User who executed the transaction
+        user_name:
+          type: string
+          readOnly: true
+        ip_address:
+          type: string
+          description: IP address of origin
+        user_agent:
+          type: string
+          description: User agent information
+          maxLength: 500
+        is_pending:
+          type: boolean
+          readOnly: true
+          description: Whether transaction is pending
+        is_processed:
+          type: boolean
+          readOnly: true
+          description: Whether transaction is processed
+      required:
+      - amount
+      - amount_display
+      - destination_account_number
+      - id
+      - ip_address
+      - is_pending
+      - is_processed
+      - new_balance
+      - previous_balance
+      - processing_date
+      - reference_number
+      - source_account
+      - source_account_number
+      - status_display
+      - transaction_date
+      - transaction_type
+      - transaction_type_display
+      - user
+      - user_name
+    TransactionCreate:
+      type: object
+      description: |-
+        Serializer for creating new transactions.
+        Contract-first approach with comprehensive validation.
+      properties:
+        transaction_type:
+          allOf:
+          - $ref: '#/components/schemas/TransactionTypeEnum'
+          description: |-
+            Type of transaction (DEPOSIT, WITHDRAWAL, TRANSFER_OUT, TRANSFER_IN)
+
+            * `DEPOSIT` - Depósito
+            * `WITHDRAWAL` - Retiro
+            * `TRANSFER_OUT` - Transferencia Salida
+            * `TRANSFER_IN` - Transferencia Entrada
+        source_account:
+          type: integer
+          description: Source account for the transaction
+        destination_account:
+          type: integer
+          nullable: true
+          description: Destination account (only for transfers)
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Transaction amount (must be positive)
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          description: |-
+            Transaction currency (must match account currency)
+
+            * `PEN` - Soles Peruanos
+            * `USD` - Dólares Americanos
+            * `EUR` - Euros
+        description:
+          type: string
+          description: Optional transaction description
+          maxLength: 500
+      required:
+      - amount
+      - currency
+      - source_account
+      - transaction_type
+    TransactionCreateRequest:
+      type: object
+      description: |-
+        Serializer for creating new transactions.
+        Contract-first approach with comprehensive validation.
+      properties:
+        transaction_type:
+          allOf:
+          - $ref: '#/components/schemas/TransactionTypeEnum'
+          description: |-
+            Type of transaction (DEPOSIT, WITHDRAWAL, TRANSFER_OUT, TRANSFER_IN)
+
+            * `DEPOSIT` - Depósito
+            * `WITHDRAWAL` - Retiro
+            * `TRANSFER_OUT` - Transferencia Salida
+            * `TRANSFER_IN` - Transferencia Entrada
+        source_account:
+          type: integer
+          description: Source account for the transaction
+        destination_account:
+          type: integer
+          nullable: true
+          description: Destination account (only for transfers)
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Transaction amount (must be positive)
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          description: |-
+            Transaction currency (must match account currency)
+
+            * `PEN` - Soles Peruanos
+            * `USD` - Dólares Americanos
+            * `EUR` - Euros
+        description:
+          type: string
+          description: Optional transaction description
+          maxLength: 500
+      required:
+      - amount
+      - currency
+      - source_account
+      - transaction_type
+    TransactionList:
+      type: object
+      description: |-
+        Simplified serializer for transaction listings.
+        Optimized for list views with essential information.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        reference_number:
+          type: string
+          description: Unique transaction reference number
+          maxLength: 50
+        transaction_type:
+          allOf:
+          - $ref: '#/components/schemas/TransactionTypeEnum'
+          description: |-
+            Type of transaction
+
+            * `DEPOSIT` - Depósito
+            * `WITHDRAWAL` - Retiro
+            * `TRANSFER_OUT` - Transferencia Salida
+            * `TRANSFER_IN` - Transferencia Entrada
+        transaction_type_display:
+          type: string
+          readOnly: true
+        source_account_number:
+          type: string
+          readOnly: true
+        destination_account_number:
+          type: string
+          readOnly: true
+        amount_display:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status7f5Enum'
+          description: |-
+            Transaction status
+
+            * `PENDING` - Pendiente
+            * `PROCESSED` - Procesada
+            * `REJECTED` - Rechazada
+            * `REVERSED` - Reversada
+        status_display:
+          type: string
+          readOnly: true
+        transaction_date:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Transaction creation date
+        user_name:
+          type: string
+          readOnly: true
+      required:
+      - amount_display
+      - destination_account_number
+      - id
+      - reference_number
+      - source_account_number
+      - status_display
+      - transaction_date
+      - transaction_type
+      - transaction_type_display
+      - user_name
+    TransactionRequest:
+      type: object
+      description: |-
+        Complete serializer for Transaction model.
+        Includes account and user information with computed fields.
+      properties:
+        transaction_type:
+          allOf:
+          - $ref: '#/components/schemas/TransactionTypeEnum'
+          description: |-
+            Type of transaction
+
+            * `DEPOSIT` - Depósito
+            * `WITHDRAWAL` - Retiro
+            * `TRANSFER_OUT` - Transferencia Salida
+            * `TRANSFER_IN` - Transferencia Entrada
+        source_account:
+          type: integer
+          description: Source account for the transaction
+        destination_account:
+          type: integer
+          nullable: true
+          description: Destination account (only for transfers)
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Transaction amount
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          description: |-
+            Transaction currency
+
+            * `PEN` - Soles Peruanos
+            * `USD` - Dólares Americanos
+            * `EUR` - Euros
+        description:
+          type: string
+          description: Transaction description
+          maxLength: 500
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status7f5Enum'
+          description: |-
+            Transaction status
+
+            * `PENDING` - Pendiente
+            * `PROCESSED` - Procesada
+            * `REJECTED` - Rechazada
+            * `REVERSED` - Reversada
+        user:
+          type: integer
+          description: User who executed the transaction
+        ip_address:
+          type: string
+          minLength: 1
+          description: IP address of origin
+        user_agent:
+          type: string
+          description: User agent information
+          maxLength: 500
+      required:
+      - amount
+      - ip_address
+      - source_account
+      - transaction_type
+      - user
+    TransactionStatus:
+      type: object
+      description: |-
+        Serializer for transaction status updates.
+        Contract-first for transaction processing endpoints.
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/TransactionStatusStatusEnum'
+          description: |-
+            New status for the transaction
+
+            * `PROCESSED` - Processed
+            * `REJECTED` - Rejected
+            * `REVERSED` - Reversed
+        reason:
+          type: string
+          description: Optional reason for status change
+          maxLength: 200
+      required:
+      - status
+    TransactionStatusRequest:
+      type: object
+      description: |-
+        Serializer for transaction status updates.
+        Contract-first for transaction processing endpoints.
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/TransactionStatusStatusEnum'
+          description: |-
+            New status for the transaction
+
+            * `PROCESSED` - Processed
+            * `REJECTED` - Rejected
+            * `REVERSED` - Reversed
+        reason:
+          type: string
+          minLength: 1
+          description: Optional reason for status change
+          maxLength: 200
+      required:
+      - status
+    TransactionStatusStatusEnum:
+      enum:
+      - PROCESSED
+      - REJECTED
+      - REVERSED
+      type: string
+      description: |-
+        * `PROCESSED` - Processed
+        * `REJECTED` - Rejected
+        * `REVERSED` - Reversed
+    TransactionTypeEnum:
+      enum:
+      - DEPOSIT
+      - WITHDRAWAL
+      - TRANSFER_OUT
+      - TRANSFER_IN
+      type: string
+      description: |-
+        * `DEPOSIT` - Depósito
+        * `WITHDRAWAL` - Retiro
+        * `TRANSFER_OUT` - Transferencia Salida
+        * `TRANSFER_IN` - Transferencia Entrada
+    Transfer:
+      type: object
+      description: |-
+        Specialized serializer for transfer operations.
+        Contract-first with comprehensive validation.
+      properties:
+        source_account_number:
+          type: string
+          description: Source account number
+          maxLength: 20
+        destination_account_number:
+          type: string
+          description: Destination account number
+          maxLength: 20
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Transfer amount (must be positive)
+        description:
+          type: string
+          description: Optional transfer description
+          maxLength: 500
+      required:
+      - amount
+      - destination_account_number
+      - source_account_number
+    TransferRequest:
+      type: object
+      description: |-
+        Specialized serializer for transfer operations.
+        Contract-first with comprehensive validation.
+      properties:
+        source_account_number:
+          type: string
+          minLength: 1
+          description: Source account number
+          maxLength: 20
+        destination_account_number:
+          type: string
+          minLength: 1
+          description: Destination account number
+          maxLength: 20
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Transfer amount (must be positive)
+        description:
+          type: string
+          minLength: 1
+          description: Optional transfer description
+          maxLength: 500
+      required:
+      - amount
+      - destination_account_number
+      - source_account_number
+    User:
+      type: object
+      description: |-
+        Serializer for User model with complete banking system information.
+        Includes role-based validation and security fields.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Nombre de usuario
+          description: 'Requerido. 150 carácteres como máximo. Únicamente letras,
+            dígitos y @/./+/-/_ '
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Dirección de correo electrónico
+          maxLength: 254
+        first_names:
+          type: string
+          description: First names of the user
+          maxLength: 100
+        last_names:
+          type: string
+          description: Last names of the user
+          maxLength: 100
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          description: |-
+            User role in the system
+
+            * `CUSTOMER` - Cliente
+            * `OPERATOR` - Operador
+            * `ADMIN` - Administrador
+        customer:
+          type: integer
+          nullable: true
+          description: Associated customer (only for CUSTOMER role)
+        customer_name:
+          type: string
+          readOnly: true
+          description: Associated customer name
+        last_access:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          description: Last system access
+        failed_attempts:
+          type: integer
+          readOnly: true
+          description: Number of failed login attempts
+        blocked_until:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          description: Date until which the user is blocked
+        is_active:
+          type: boolean
+          title: Activo
+          description: Indica si el usuario debe ser tratado como activo. Desmarque
+            esta opción en lugar de borrar la cuenta.
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Fecha de alta
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+          description: Full name of the user
+        is_blocked:
+          type: boolean
+          readOnly: true
+          description: Whether the user is temporarily blocked
+      required:
+      - blocked_until
+      - customer_name
+      - date_joined
+      - email
+      - failed_attempts
+      - first_names
+      - full_name
+      - id
+      - is_blocked
+      - last_access
+      - last_names
+      - role
+      - updated_at
+      - username
+    UserCreate:
+      type: object
+      description: |-
+        Serializer for creating new users with password validation.
+        Contract-first approach with detailed validation rules.
+      properties:
+        username:
+          type: string
+          title: Nombre de usuario
+          description: 'Requerido. 150 carácteres como máximo. Únicamente letras,
+            dígitos y @/./+/-/_ '
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Dirección de correo electrónico
+          maxLength: 254
+        first_names:
+          type: string
+          description: First names of the user
+          maxLength: 100
+        last_names:
+          type: string
+          description: Last names of the user
+          maxLength: 100
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          description: |-
+            User role in the system
+
+            * `CUSTOMER` - Cliente
+            * `OPERATOR` - Operador
+            * `ADMIN` - Administrador
+        customer:
+          type: integer
+          nullable: true
+          description: Associated customer (only for CUSTOMER role)
+      required:
+      - email
+      - first_names
+      - last_names
+      - role
+      - username
+    UserCreateRequest:
+      type: object
+      description: |-
+        Serializer for creating new users with password validation.
+        Contract-first approach with detailed validation rules.
+      properties:
+        username:
+          type: string
+          minLength: 1
+          title: Nombre de usuario
+          description: 'Requerido. 150 carácteres como máximo. Únicamente letras,
+            dígitos y @/./+/-/_ '
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Dirección de correo electrónico
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+          description: Password must meet Django's validation requirements
+        password_confirm:
+          type: string
+          writeOnly: true
+          minLength: 1
+          description: Password confirmation - must match password
+        first_names:
+          type: string
+          minLength: 1
+          description: First names of the user
+          maxLength: 100
+        last_names:
+          type: string
+          minLength: 1
+          description: Last names of the user
+          maxLength: 100
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          description: |-
+            User role in the system
+
+            * `CUSTOMER` - Cliente
+            * `OPERATOR` - Operador
+            * `ADMIN` - Administrador
+        customer:
+          type: integer
+          nullable: true
+          description: Associated customer (only for CUSTOMER role)
+      required:
+      - email
+      - first_names
+      - last_names
+      - password
+      - password_confirm
+      - role
+      - username
+    UserList:
+      type: object
+      description: |-
+        Simplified serializer for user listings.
+        Optimized for list views with minimal data.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Nombre de usuario
+          description: 'Requerido. 150 carácteres como máximo. Únicamente letras,
+            dígitos y @/./+/-/_ '
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Dirección de correo electrónico
+          maxLength: 254
+        full_name:
+          type: string
+          readOnly: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          description: |-
+            User role in the system
+
+            * `CUSTOMER` - Cliente
+            * `OPERATOR` - Operador
+            * `ADMIN` - Administrador
+        role_display:
+          type: string
+          readOnly: true
+        customer_name:
+          type: string
+          readOnly: true
+        is_active:
+          type: boolean
+          title: Activo
+          description: Indica si el usuario debe ser tratado como activo. Desmarque
+            esta opción en lugar de borrar la cuenta.
+        last_access:
+          type: string
+          format: date-time
+          nullable: true
+          description: Last system access
+        date_joined:
+          type: string
+          format: date-time
+          title: Fecha de alta
+      required:
+      - customer_name
+      - full_name
+      - id
+      - role
+      - role_display
+      - username
+    UserUpdate:
+      type: object
+      description: |-
+        Serializer for updating user information.
+        Excludes sensitive fields that require special handling.
+      properties:
+        email:
+          type: string
+          format: email
+          title: Dirección de correo electrónico
+          maxLength: 254
+        first_names:
+          type: string
+          description: First names of the user
+          maxLength: 100
+        last_names:
+          type: string
+          description: Last names of the user
+          maxLength: 100
+        is_active:
+          type: boolean
+          title: Activo
+          description: Indica si el usuario debe ser tratado como activo. Desmarque
+            esta opción en lugar de borrar la cuenta.
+      required:
+      - first_names
+      - last_names
+    UserUpdateRequest:
+      type: object
+      description: |-
+        Serializer for updating user information.
+        Excludes sensitive fields that require special handling.
+      properties:
+        email:
+          type: string
+          format: email
+          title: Dirección de correo electrónico
+          maxLength: 254
+        first_names:
+          type: string
+          minLength: 1
+          description: First names of the user
+          maxLength: 100
+        last_names:
+          type: string
+          minLength: 1
+          description: Last names of the user
+          maxLength: 100
+        is_active:
+          type: boolean
+          title: Activo
+          description: Indica si el usuario debe ser tratado como activo. Desmarque
+            esta opción en lugar de borrar la cuenta.
+      required:
+      - first_names
+      - last_names
+    Withdrawal:
+      type: object
+      description: |-
+        Specialized serializer for withdrawal operations.
+        Contract-first with balance validation.
+      properties:
+        account_number:
+          type: string
+          description: Account number to withdraw from
+          maxLength: 20
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Withdrawal amount (must be positive)
+        description:
+          type: string
+          description: Optional withdrawal description
+          maxLength: 500
+      required:
+      - account_number
+      - amount
+    WithdrawalRequest:
+      type: object
+      description: |-
+        Specialized serializer for withdrawal operations.
+        Contract-first with balance validation.
+      properties:
+        account_number:
+          type: string
+          minLength: 1
+          description: Account number to withdraw from
+          maxLength: 20
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          description: Withdrawal amount (must be positive)
+        description:
+          type: string
+          minLength: 1
+          description: Optional withdrawal description
+          maxLength: 500
+      required:
+      - account_number
+      - amount
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid

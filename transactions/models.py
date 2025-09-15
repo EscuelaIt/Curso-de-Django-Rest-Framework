@@ -173,12 +173,21 @@ class Transaction(models.Model):
     
     def save(self, *args, **kwargs):
         """Override save for validations and reference generation"""
-        self.full_clean()
-        
-        # Generate reference number if it doesn't exist
+        # Generate reference number if it doesn't exist (before validation)
         if not self.reference_number:
             self.reference_number = self._generate_reference_number()
         
+        # Set balance fields if not provided (before validation)
+        if self.previous_balance is None:
+            self.previous_balance = self.source_account.current_balance if self.source_account else 0
+        
+        if self.new_balance is None and self.source_account:
+            if self.transaction_type == 'DEPOSIT':
+                self.new_balance = self.previous_balance + self.amount
+            elif self.transaction_type == 'WITHDRAWAL':
+                self.new_balance = self.previous_balance - self.amount
+        
+        self.full_clean()
         super().save(*args, **kwargs)
     
     def _generate_reference_number(self):
